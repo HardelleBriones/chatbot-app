@@ -1,0 +1,13 @@
+# Python specific
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Virtual environments
+venv/
+.venv/
+
+#chromadb
+chroma_db/
