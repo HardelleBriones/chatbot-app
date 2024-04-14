@@ -1,0 +1,81 @@
+.chat-container {
+    position: relative;
+}
+  
+.chat-sidebar {
+  position: fixed;
+  top: 0;
+  right: -440px;
+  width: 350px;
+  height: 100%;
+  background-color: #dadada;
+  padding: 20px;
+  transition: right 0.3s ease-in-out;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background-color: yellow;
+}
+
+.chat-messages {
+  position: fixed;
+  width: 350px;
+  max-height: 470px;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  background-color: #dadada;
+}
+
+.chat-input {
+  position: fixed;
+  bottom: 30px;
+  width: 350px;
+}
+
+#userInput {
+  width: calc(100% - 20px);
+  height: 30px;
+  margin-right: 10px;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+}
+
+#userInput:focus {
+  outline: none;
+}
+
+#sendBtn {
+  position: absolute;
+  top: 15px;
+  right: 10px;
+  height: 25px;
+  width: 35px;
+  border-radius: 5px;
+  border: none;
+  background: url('static/send-icon.svg') no-repeat 5px center;
+}
+
+.openBtn {
+  position: fixed;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 0;
+  border: none;
+  padding: 10px;
+  top: 10%;
+  right: 0;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.openBtn:hover {
+  background-color: black;
+  color: white;
+}
