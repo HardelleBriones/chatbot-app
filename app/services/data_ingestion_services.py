@@ -11,8 +11,7 @@ from llama_index.core import Document
 from llama_index.core.schema import BaseNode
 from typing import List
 import os
-from dotenv import load_dotenv
-load_dotenv()
+
 chroma_client = chromadb.PersistentClient(path="../chroma_db")
 def add_data(filename: str,data: List[BaseNode]):
     try:

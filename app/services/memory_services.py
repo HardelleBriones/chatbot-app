@@ -5,8 +5,7 @@ import uuid
 from llama_index.core.llms import ChatMessage, MessageRole
 # Replace with your MongoDB connection details
 import os
-from dotenv import load_dotenv
-load_dotenv()
+
 class ChatHistory():
     def __init__(self):
         MONGO_URI = os.getenv("MONGODB_CONNECTION_STRING")

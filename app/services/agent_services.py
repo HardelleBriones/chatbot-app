@@ -19,8 +19,7 @@ import chromadb
 from llama_index.core.objects import ObjectIndex, SimpleToolNodeMapping
 import os
 from llama_index.vector_stores.chroma import ChromaVectorStore
-from dotenv import load_dotenv
-load_dotenv()
+
 class ItemManager:
     def __init__(self):
         self.db = chromadb.PersistentClient(path="../chroma_db")

@@ -3,6 +3,9 @@ from fastapi import FastAPI, UploadFile
 # from .database import engine
 from routers import query, knowledge_base, user, evaluation
 #models.Base.metadata.create_all(bind=engine)
+
+from dotenv import load_dotenv
+load_dotenv()
 app = FastAPI()
 
 
