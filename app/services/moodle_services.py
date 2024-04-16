@@ -9,6 +9,8 @@ class MoodleServices:
     def __init__(self, base_url: str = "http://localhost"):
         self.api_token = MOODLE_API_TOKEN
         self.base_url = f"{base_url}/webservice/rest/server.php"
+        
+    print("API Token:", MOODLE_API_TOKEN)
 
     def make_api_call(self, wsfunction, params=None):
         """General method to make an API call to the Moodle web service."""
@@ -45,13 +47,17 @@ class MoodleServices:
         user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
         user_info = self.make_api_call('core_user_get_users_by_field', {'field': 'id', 'values[0]': user_id})
         user_name = user_info[0]['fullname']
+        for course in user_courses:
+            course['contents'] = self.get_course_contents(course['id'])
         return {'user_id': user_id, 'user_name': user_name, 'courses': user_courses}
         
 
 # Example usage:
 moodle_service = MoodleServices()
 try:
-    enrolled_courses = moodle_service.get_courses_for_user(user_id=4)
+    enrolled_courses = moodle_service.get_courses_for_user(user_id=3)
+    #all_courses = moodle_service.get_all_courses()
     print(json.dumps(enrolled_courses, indent=4))
+    #print(json.dumps(all_courses, indent=4))
 except SystemError as e:
     print(e)
