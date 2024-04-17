@@ -1,7 +1,15 @@
 from fastapi import Depends, status, HTTPException, Response, APIRouter
-from services.agent_services import ItemManager
+from services.agent_services import (create_vector_engine,
+                                     create_summary_engine,
+                                     create_engine_tools,
+                                     create_document_agent,
+                                     convert_tool_agent,
+                                     create_object_index,
+                                     fnRetriever,
+                                     create_vector_engine_atlas,
+                                     create_summary_engine_atlas)
+from services.atlas_services import get_collections
 import chromadb
-bot = ItemManager()
 router = APIRouter(
     prefix="/query",
     tags=["query"]
@@ -16,15 +24,41 @@ def query(query: str):
         collections = [collection.name for collection in names]
         for collection in collections:
             #also add db to specify the collection
-            vector = bot.create_vector_engine(collection)
-            summary = bot.create_summary_engine(collection)
-            tools = bot.create_engine_tools(vector,summary,collection)
-            agent = bot.create_document_agent(tools,collection)
+            vector = create_vector_engine(collection)
+            summary = create_summary_engine(collection)
+            tools = create_engine_tools(vector,summary,collection)
+            agent = create_document_agent(tools,collection)
             agents[collection] = agent
-        all_tools = bot.convert_tool_agent(collections,agents)
-        obj_index = bot.create_object_index(all_tools)
+        all_tools = convert_tool_agent(collections,agents)
+        obj_index = create_object_index(all_tools)
         #chat_history1 =  get_chat_history("user")
-        top_agent = bot.fnRetriever(obj_index)
+        top_agent = fnRetriever(obj_index)
+        #chat_history = chat_history1
+        response = top_agent.chat(query)
+        return str(response)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
+
+#add db_name for the course
+@router.get("/atlas")
+def query_atlas(query: str, subject:str):
+    try:
+        agents = {}
+        collections = get_collections(subject)
+        print(collections)
+        if not collections:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No subject found")
+        for collection in collections:
+            #also add db to specify the collection
+            vector = create_vector_engine_atlas(collection,subject)
+            summary = create_summary_engine_atlas(collection,subject)
+            tools = create_engine_tools(vector,summary,collection)
+            agent = create_document_agent(tools,collection)
+            agents[collection] = agent
+        all_tools = convert_tool_agent(collections,agents)
+        obj_index = create_object_index(all_tools)
+        #chat_history1 =  get_chat_history("user")
+        top_agent = fnRetriever(obj_index)
         #chat_history = chat_history1
         response = top_agent.chat(query)
         return str(response)
