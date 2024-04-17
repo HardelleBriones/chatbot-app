@@ -22,7 +22,7 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 import pymongo
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
 from llama_index.core import Settings
-Settings.llm = OpenAI(temperature=0, model="gpt-3.5-turbo")
+llm = OpenAI(temperature=0, model="gpt-3.5-turbo")
 db = chromadb.PersistentClient(path="../chroma_db")
 MONGO_URI = os.getenv("MONGODB_CONNECTION_STRING")
 
@@ -45,10 +45,7 @@ def create_vector_engine_atlas(collection_name,db_name):
     )
 
     index = VectorStoreIndex.from_vector_store(vector_store)
-    query_engine = index.as_query_engine()
-    # print("-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    # print(query_engine.query("what do you know?"))
-    # print("-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    query_engine = index.as_query_engine(llm=llm)
     return query_engine
 
 
@@ -66,7 +63,7 @@ docstore=MongoDocumentStore.from_uri(uri=MONGO_URI, namespace=collection, db_nam
 index_store=MongoIndexStore.from_uri(uri=MONGO_URI, namespace=collection, db_name=f"index_{db_name}"),
 )
     summary_index = load_index_from_storage(storage_context)
-    summary_query_engine = summary_index.as_query_engine()
+    summary_query_engine = summary_index.as_query_engine(llm=llm)
     return summary_query_engine
 
 def create_engine_tools(vector_query_engine,summary_query_engine, collection):
