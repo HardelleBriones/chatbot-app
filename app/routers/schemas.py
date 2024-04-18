@@ -49,3 +49,7 @@ class UserCreate(User):
 class UserUpdate(BaseModel):
     name: str
     email: EmailStr
+
+class Course(BaseModel):
+    displayname: str
+    urls: List[str]
