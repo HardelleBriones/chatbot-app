@@ -3,14 +3,14 @@ import os
 import json
 
 # Use environment variable for the Moodle API token
-MOODLE_API_TOKEN = os.getenv('MOODLE_API_TOKEN')
+#MOODLE_API_TOKEN = os.getenv('MOODLE_API_TOKEN')
 
 class MoodleServices:
     def __init__(self, base_url: str = "http://localhost"):
-        self.api_token = MOODLE_API_TOKEN
+        self.api_token = os.getenv('MOODLE_API_TOKEN')
         self.base_url = f"{base_url}/webservice/rest/server.php"
         
-    print("API Token:", MOODLE_API_TOKEN)
+    print("API Token:", os.getenv('MOODLE_API_TOKEN'))
 
     def make_api_call(self, wsfunction, params=None):
         """General method to make an API call to the Moodle web service."""
