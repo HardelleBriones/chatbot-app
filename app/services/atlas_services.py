@@ -20,7 +20,6 @@ Settings.embed_model = OpenAIEmbedding(model="text-embedding-ada-002")
 MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
 def add_data_atlas(collection: str,db_name: str,data: List[BaseNode]):
     try:
-        MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
         mongodb_client = pymongo.MongoClient(MONGO_URI)
         store = MongoDBAtlasVectorSearch(mongodb_client,db_name=f"vector_{db_name}", collection_name=collection)
         storage_context_vector = StorageContext.from_defaults(vector_store=store)
