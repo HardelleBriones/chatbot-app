@@ -28,7 +28,7 @@
 .chat-messages {
   position: absolute;
   width: 350px;
-  max-height: 580px;
+  max-height: 450px;
   overflow-y: auto;
   overflow-x: auto;
   margin-bottom: 20px;
