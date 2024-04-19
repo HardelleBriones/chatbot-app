@@ -1,30 +1,32 @@
 .chat-container {
-    position: relative;
+  position: relative;
 }
   
 .chat-sidebar {
   position: fixed;
   top: 0;
   right: -440px;
-  width: 350px;
+  width: 400px;
   height: 100%;
   background-color: #dadada;
   padding: 20px;
+  border-top-left-radius: 15px;
   transition: right 0.3s ease-in-out;
 }
 
 .chat-header {
   display: flex;
+  width: 350px;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  background-color: yellow;
+  background-color: white;
 }
 
 .chat-messages {
-  position: fixed;
+  position: absolute;
   width: 350px;
-  max-height: 470px;
+  max-height: 580px;
   overflow-y: auto;
   overflow-x: auto;
   margin-bottom: 20px;
@@ -59,6 +61,37 @@
   border-radius: 5px;
   border: none;
   background: url('static/send-icon.svg') no-repeat 5px center;
+}
+
+.chat-settings {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 780px;
+  color: white;
+  background-color: white;
+}
+
+#settingsBtn {
+  position: absolute;
+  bottom: 40px;
+  right: 10px;
+  height: 25px;
+  width: 35px;
+  border-radius: 5px;
+  border: none;
+  background: url('static/settings-icon.svg') no-repeat 5px center;
+}
+
+#exitBtn {
+  position: absolute;
+  top: 40px;
+  right: 5px;
+  height: 25px;
+  width: 35px;
+  border-radius: 5px;
+  border: none;
+  background: url('static/exit-icon.svg') no-repeat 5px center;
 }
 
 .openBtn {

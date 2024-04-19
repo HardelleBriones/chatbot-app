@@ -1,18 +1,23 @@
 const openBtn = document.getElementById('openBtn');
 const sidebar = document.querySelector('.chat-sidebar');
+const exitBtn = document.getElementById('exitBtn');
 
 openBtn.addEventListener('click', () => {
-  const sidebarOpen = sidebar.style.right === '0px' || sidebar.style.right === '';
+  sidebar.style.right = '0';
+  openBtn.style.transition = 'right 0.3s ease-in-out';
+  openBtn.style.right = '440px';
+  openBtn.style.display = 'none';
+});
 
-  if(sidebarOpen) {
-    sidebar.style.right = '-440px';
-    openBtn.style.transition = 'right 0.3s ease-in-out';
-    openBtn.style.right = '0';
-  } else {
-    sidebar.style.right = '0';
-    openBtn.style.transition = 'right 0.3s ease-in-out';
-    openBtn.style.right = '390px'; 
-  }
+exitBtn.addEventListener('click', () => {
+  sidebar.style.right = '-440px';
+  openBtn.style.transition = 'right 0.3s ease-in-out';
+  openBtn.style.right = '0';
+
+  setTimeout(() => {
+    openBtn.style.display = 'block';
+  }, 300);
+  
 });
 
 const userInput = document.getElementById('userInput');
