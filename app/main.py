@@ -14,9 +14,6 @@ app = FastAPI()
 app.include_router(query.router)
 app.include_router(moodle.router)
 app.include_router(atlas.router)
-#app.include_router(knowledge_base.router)
+app.include_router(knowledge_base.router)
 app.include_router(user.router)
 app.include_router(evaluation.router)
-
-
-
