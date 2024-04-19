@@ -48,6 +48,7 @@ body, html {
   border-radius: 10px;
   margin-bottom: 10px;
   display: inline-block;
+  overflow-wrap: break-word; /* Ensures text wraps to next line */
 }
 
 .user-message {
@@ -104,13 +105,13 @@ input {
 
 .open-btn {
   position: fixed;
-  top: 20%;
-  right: 10px;
+  top: 10%;
+  right: 5px;
   background-color: #007BFF;
   color: #fff;
   border: none;
-  border-radius: 20px;
-  padding: 10px 20px;
+  border-radius: 50px;
+  padding: 15px;
   cursor: pointer;
   transition: background-color 0.3s, right 0.5s ease-in-out;
 }
