@@ -1,51 +1,50 @@
-const openBtn = document.getElementById('openBtn');
-const sidebar = document.querySelector('.chat-sidebar');
-const exitBtn = document.getElementById('exitBtn');
+document.addEventListener('DOMContentLoaded', function () {
+  const sidebar = document.querySelector('.chat-sidebar');
+  const openBtn = document.getElementById('openBtn');
+  const exitBtn = document.getElementById('exitBtn');
+  const chatMessages = document.getElementById('chatMessages');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
 
-openBtn.addEventListener('click', () => {
-  sidebar.style.right = '0';
-  openBtn.style.transition = 'right 0.3s ease-in-out';
-  openBtn.style.right = '440px';
-  openBtn.style.display = 'none';
-});
-
-exitBtn.addEventListener('click', () => {
-  sidebar.style.right = '-440px';
-  openBtn.style.transition = 'right 0.3s ease-in-out';
-  openBtn.style.right = '0';
-
-  setTimeout(() => {
-    openBtn.style.display = 'block';
-  }, 300);
-  
-});
-
-const userInput = document.getElementById('userInput');
-const sendBtn = document.getElementById('sendBtn');
-const chatMessages = document.getElementById('chatMessages');
-
-function sendMessage() {
-  const userMessage = userInput.value;
-  if(userMessage.trim() !== '') {
-    displayMessage('You', userMessage);
-    userInput.value = '';
-      
-      
+  function toggleSidebar(isOpen) {
+      sidebar.style.right = isOpen ? '0' : '-420px';
+      openBtn.style.right = isOpen ? '420px' : '10px';
   }
-}
 
-function displayMessage(sender, message) {
-  const messageDiv = document.createElement('div');
-  messageDiv.classList.add('message');
-  messageDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
-  chatMessages.appendChild(messageDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight; // always scroll to newest message
-}
+  openBtn.addEventListener('click', () => toggleSidebar(true));
+  exitBtn.addEventListener('click', () => toggleSidebar(false));
 
-sendBtn.addEventListener('click', sendMessage);
+  document.addEventListener('click', function (event) {
+      if (!sidebar.contains(event.target) && !openBtn.contains(event.target)) {
+          toggleSidebar(false);
+      }
+  });
 
-userInput.addEventListener('keypress', function (enter) {
-    if(enter.key === 'Enter') {
-    sendMessage();
-    }
+  function sendMessage() {
+      const messageText = userInput.value.trim();
+      if (messageText) {
+          const messageDiv = document.createElement('div');
+          messageDiv.classList.add('message', 'user-message');
+          messageDiv.textContent = messageText;
+          chatMessages.appendChild(messageDiv);
+          userInput.value = '';
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+
+          // Simulate a bot response
+          setTimeout(() => {
+              const botMessage = document.createElement('div');
+              botMessage.classList.add('message', 'bot-message');
+              botMessage.textContent = "Here's a placeholder reply from the bot!";
+              chatMessages.appendChild(botMessage);
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+          }, 1000);
+      }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  userInput.addEventListener('keypress', function (event) {
+      if (event.key === 'Enter') {
+          sendMessage();
+      }
+  });
 });
