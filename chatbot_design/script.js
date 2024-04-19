@@ -29,7 +29,7 @@ function sendMessage() {
   if (userMessage !== '') {
     displayMessage('You', userMessage);
 
-    fetch('/query?query=' + encodeURIComponent(userMessage), {
+    fetch(`http://127.0.0.1:8000/query/atlas?query=${encodeURIComponent(userMessage)}&subject=subject2&user=user`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -37,23 +37,47 @@ function sendMessage() {
     })
       .then(response => response.text())
       .then(data => {
-        displayMessage('Bot', data);
+        displayMessage('Chatbot', data);
       })
       .catch(error => {
         console.error('Error:', error);
-        displayMessage('Bot', 'Sorry, I couldn\'t process your request.');
+        displayMessage('Chatbot', 'Sorry, I couldn\'t process your request.');
       });
 
     userInput.value = '';
   }
 }
 
+// function sendMessage() {
+//   const userMessage = userInput.value.trim();
+//   if (userMessage !== '') {
+//     displayMessage('You', userMessage);
+
+//     fetch('/atlas?query=' + encodeURIComponent(userMessage) + '&subject=1', {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//     })
+//       .then(response => response.text())
+//       .then(data => {
+//         displayMessage('Bot', data);
+//       })
+//       .catch(error => {
+//         console.error('Error:', error);
+//         displayMessage('Bot', 'Sorry, I couldn\'t process your request.');
+//       });
+
+//     userInput.value = '';
+//   }
+// }
+
 
 function displayMessage(sender, message) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message');
 
-  if (sender === 'Bot') {
+  if (sender === 'Chatbot') {
     const messageContent = `<strong>${sender}:</strong> `;
     messageDiv.innerHTML = messageContent;
     chatMessages.appendChild(messageDiv);
