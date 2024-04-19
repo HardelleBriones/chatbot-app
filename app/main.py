@@ -5,7 +5,7 @@ from routers import query, knowledge_base, user, evaluation, atlas, moodle
 #models.Base.metadata.create_all(bind=engine)
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(dotenv_path="..\\.env")
 app = FastAPI()
 
 
