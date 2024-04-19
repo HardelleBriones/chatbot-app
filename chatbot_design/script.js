@@ -48,31 +48,6 @@ function sendMessage() {
   }
 }
 
-// function sendMessage() {
-//   const userMessage = userInput.value.trim();
-//   if (userMessage !== '') {
-//     displayMessage('You', userMessage);
-
-//     fetch('/atlas?query=' + encodeURIComponent(userMessage) + '&subject=1', {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//     })
-//       .then(response => response.text())
-//       .then(data => {
-//         displayMessage('Bot', data);
-//       })
-//       .catch(error => {
-//         console.error('Error:', error);
-//         displayMessage('Bot', 'Sorry, I couldn\'t process your request.');
-//       });
-
-//     userInput.value = '';
-//   }
-// }
-
-
 function displayMessage(sender, message) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message');
