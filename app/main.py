@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 #from . import models
 # from .database import engine
 from routers import query, knowledge_base, user, evaluation, atlas, moodle
@@ -7,6 +8,13 @@ from routers import query, knowledge_base, user, evaluation, atlas, moodle
 from dotenv import load_dotenv
 load_dotenv()
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],  # Add OPTIONS method
+    allow_headers=["*"],
+)
 
 
 
