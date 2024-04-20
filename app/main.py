@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 #from . import models
 # from .database import engine
-from routers import query, knowledge_base, user, evaluation, atlas, moodle
+from routers import query, knowledge_base, user, evaluation, atlas, moodle, mono
 #models.Base.metadata.create_all(bind=engine)
 
 from dotenv import load_dotenv
@@ -18,7 +18,7 @@ app.add_middleware(
 
 
 
-
+app.include_router(mono.router)
 app.include_router(query.router)
 app.include_router(moodle.router)
 app.include_router(atlas.router)
