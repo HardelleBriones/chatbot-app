@@ -10,8 +10,9 @@ import tiktoken
 
 from llama_index.core import Settings
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
-import os
 
+from dotenv import load_dotenv
+load_dotenv()
 def file_cost_embeddings(documents: List[BaseNode]):
     embed_model = MockEmbedding(embed_dim=1536)
     token_counter = TokenCountingHandler(

@@ -1,7 +1,8 @@
 import requests
 import os
 import json
-
+from dotenv import load_dotenv
+load_dotenv()
 # Use environment variable for the Moodle API token
 #MOODLE_API_TOKEN = os.getenv('MOODLE_API_TOKEN')
 

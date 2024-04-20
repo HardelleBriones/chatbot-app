@@ -12,9 +12,9 @@ from llama_index.core.schema import BaseNode
 from typing import List
 import os
 import re
-import pymongo
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
-
+from dotenv import load_dotenv
+load_dotenv()
 chroma_client = chromadb.PersistentClient(path="../chroma_db")
 def add_data(filename: str,data: List[BaseNode]):
     try:
