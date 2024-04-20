@@ -89,7 +89,7 @@ class MoodleServices:
 # Example usage:
 moodle_service = MoodleServices()
 try:
-    enrolled_courses = moodle_service.get_courses_for_user(user_id=11)
+    enrolled_courses = moodle_service.get_courses_for_user(user_id=3)
     #all_courses = moodle_service.get_all_courses()
     print(json.dumps(enrolled_courses, indent=4))
     #print(json.dumps(all_courses, indent=4))
