@@ -20,32 +20,60 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    function sendMessage() {
-        const messageText = userInput.value.trim();
-        if (messageText) {
-            if (messageText.length > 3000) { // Check if the message exceeds 3000 characters
-                const errorDiv = document.createElement('div');
-                errorDiv.classList.add('message', 'bot-message');
-                errorDiv.textContent = "Error: Only 3000 characters are allowed.";
-                chatMessages.appendChild(errorDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            } else {
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message', 'user-message');
-                messageDiv.textContent = messageText;
-                chatMessages.appendChild(messageDiv);
-                userInput.value = ''; // Clear the input field
-                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom of the chat
+    function displayMessage(sender, message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+    
+        if (sender === 'Chatbot') {
+            const messageContent = `<strong>${sender}:</strong> `;
+            messageDiv.classList.add('bot-message');
+            messageDiv.innerHTML = messageContent;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+            let index = 0;
+            const typingInterval = setInterval(() => {
+                messageDiv.innerHTML = messageContent + message.slice(0, index);
+                index++;
+                if (index > message.length) {
+                    clearInterval(typingInterval);
+                }
+            }, 50);
+        } else {
+            messageDiv.classList.add(sender === 'You' ? 'user-message' : 'system-message'); // Assuming system messages use a different style
+            messageDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+    
 
-                // Simulate a bot response
-                setTimeout(() => {
-                    const botMessage = document.createElement('div');
-                    botMessage.classList.add('message', 'bot-message');
-                    botMessage.textContent = "Here's a placeholder reply from the bot!";
-                    chatMessages.appendChild(botMessage);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 1000);
+    function sendMessage() {
+        const userMessage = userInput.value.trim();
+        if (userMessage !== '') {
+            if (userMessage.length > 3000) {
+                displayMessage('System', 'Error: Only 3000 characters are allowed.');
+                return;
             }
+
+            displayMessage('You', userMessage);
+
+            fetch(`http://127.0.0.1:8000/query/atlas?query=${encodeURIComponent(userMessage)}&subject=subject2&user=user`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.text())
+                .then(data => {
+                    displayMessage('Chatbot', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    displayMessage('Chatbot', 'Sorry, I couldn\'t process your request.');
+                });
+
+            userInput.value = '';
         }
     }
 

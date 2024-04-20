@@ -134,3 +134,8 @@ input {
   background-image: url('static/logo-icon.svg');
   background-color: #41fff9;
 }
+
+.system-message {
+  background-color: #f8d7da; /* Example: light red for error messages */
+  color: #721c24;
+}
