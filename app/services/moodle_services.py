@@ -56,14 +56,32 @@ class MoodleServices:
         """Retrieve courses for a specific user with detailed content and module information."""
         user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
         courses_data = []
+
         for course in user_courses:
-            course_data = {'displayname': course['displayname'], 'urls': []}
+            course_data = {
+                'displayname': course['displayname'],
+                'contents': []
+            }
             course_contents = self.get_course_contents(course['id'])
+
             for content in course_contents:
+                content_data = {
+                    'name': content['name'],
+                    'modules': []
+                }
+
                 for module in content.get('modules', []):
                     if 'url' in module:
-                        course_data['urls'].append(module['url'])
+                        module_data = {
+                            'url': module['url'],
+                            'name': module['name']
+                        }
+                        content_data['modules'].append(module_data)
+
+                course_data['contents'].append(content_data)
+
             courses_data.append(course_data)
+
         return courses_data
         
     
