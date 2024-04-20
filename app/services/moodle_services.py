@@ -40,18 +40,62 @@ class MoodleServices:
         """Retrieve contents for a specific course."""
         return self.make_api_call('core_course_get_contents', {'courseid': course_id})
     
+    # def get_courses_for_user(self, user_id):
+    #     """Retrieve courses for a specific user."""
+    #     user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
+    #     user_info = self.make_api_call('core_user_get_users_by_field', {'field': 'id', 'values[0]': user_id})
+    #     user_name = user_info[0]['fullname']
+    #     return {'user_id': user_id, 'user_name': user_name, 'courses': user_courses}
+    
+    # def get_courses_for_user(self, user_id):
+    #     """Retrieve courses for a specific user."""
+    #     user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
+    #     user_info = self.make_api_call('core_user_get_users_by_field', {'field': 'id', 'values[0]': user_id})
+    #     user_name = user_info[0]['fullname']
+    #     for course in user_courses:
+    #         course['contents'] = self.get_course_contents(course['id'])
+    #     return {'user_id': user_id, 'user_name': user_name, 'courses': user_courses}
+    
     def get_courses_for_user(self, user_id):
-        """Retrieve courses for a specific user."""
+        """Retrieve courses for a specific user with detailed content and module information."""
         user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
-        user_info = self.make_api_call('core_user_get_users_by_field', {'field': 'id', 'values[0]': user_id})
-        user_name = user_info[0]['fullname']
-        return {'user_id': user_id, 'user_name': user_name, 'courses': user_courses}
+        courses_data = []
+
+        for course in user_courses:
+            course_data = {
+                'displayname': course['displayname'],
+                'contents': []
+            }
+            course_contents = self.get_course_contents(course['id'])
+            
+            for content in course_contents:
+                content_data = {
+                    'name': content['name'],
+                    'modules': []
+                }
+
+                for module in content.get('modules', []):
+                    if 'url' in module:
+                        module_data = {
+                            'url': module['url'],
+                            'name': module['name']
+                        }
+                        content_data['modules'].append(module_data)
+
+                course_data['contents'].append(content_data)
+            
+            courses_data.append(course_data)
+        
+        return courses_data
+
         
 
 # Example usage:
 moodle_service = MoodleServices()
 try:
-    enrolled_courses = moodle_service.get_courses_for_user(user_id=4)
+    enrolled_courses = moodle_service.get_courses_for_user(user_id=11)
+    #all_courses = moodle_service.get_all_courses()
     print(json.dumps(enrolled_courses, indent=4))
+    #print(json.dumps(all_courses, indent=4))
 except SystemError as e:
     print(e)

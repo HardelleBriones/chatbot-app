@@ -1,0 +1,6 @@
+.block_chatbot {
+    z-index: 10000; /* Higher value to ensure it's on top of other elements */
+    position: relative; /* May need to be 'absolute' or 'fixed' depending on your layout */
+    border: 2px solid #007BFF; /* Makes the block visually stand out */
+    background: #FFFFFF; /* Optional: sets a background color to ensure text is readable */
+}

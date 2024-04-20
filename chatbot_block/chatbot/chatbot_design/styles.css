@@ -25,7 +25,7 @@ body, html {
   justify-content: space-between;
   align-items: center;
   font-size: 1.2rem;
-  margin-bottom: 10px;
+  padding-bottom: 10px;
 }
 
 .chat-messages {
@@ -56,7 +56,7 @@ body, html {
   color: #fff;
   float: right;
   clear: both;
-  margin-right: 10px; /* Right margin for spacing */
+  margin-right: 5px; /* Right margin for spacing */
 }
 
 .bot-message {
@@ -64,7 +64,7 @@ body, html {
   color: #ffffff;
   float: left;
   clear: both;
-  margin-left: 10px; /* Left margin for spacing */
+  margin-left: 5px; /* Left margin for spacing */
 }
 
 
@@ -88,7 +88,7 @@ input {
 .icon-button {
   width: 40px;
   height: 40px;
-  background-color: #007BFF;
+  background-color: #ffffff;
   color: #fff;
   background-repeat: no-repeat;
   background-position: center;
@@ -103,19 +103,34 @@ input {
   background-image: url('static/send-icon.svg');
 }
 
-.open-btn {
-  position: fixed;
-  top: 10%;
-  right: 5px;
+.send-btn:hover {
+  background-image: url('static/send-icon.svg');
   background-color: #007BFF;
-  color: #fff;
-  border: none;
-  border-radius: 50px;
-  padding: 15px;
-  cursor: pointer;
-  transition: background-color 0.3s, right 0.5s ease-in-out;
 }
 
+.open-btn {
+  background-image: url('static/logo-icon.svg'); 
+  background-repeat: no-repeat;
+  background-size: cover; 
+  background-position: center; 
+  position: fixed;
+  top: 10%;
+  right: 10px; 
+  width: 60px; 
+  height: 60px; 
+  border: none;
+  border-radius: 50px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, right 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white; /* Ensures contrast if the image doesn't load */
+}
+
+
 .open-btn:hover {
-  background-color: #0056b3;
+  background-image: url('static/logo-icon.svg');
+  background-color: #41fff9;
 }
