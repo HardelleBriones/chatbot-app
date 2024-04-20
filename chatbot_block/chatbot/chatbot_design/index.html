@@ -1,30 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Sidebar Chatbot</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot UI</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="chat-container">
     <div class="chat-sidebar">
-      <div class="chat-header">
-        <h3>Chatbot</h3>
-      </div>
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input">
-        <input type="text" id="userInput" placeholder="Type your message...">
-        <button id="sendBtn"></button>
-      </div>
-      <div class="chat-settings">settings
-        <button id="settingsBtn"></button>
-        <button id="exitBtn"></button>
-      </div>
+        <header class="chat-header">
+            <h3>MoodBot</h3>
+            <button id="exitBtn" class="icon-button exit-btn" aria-label="Close chat"></button>
+        </header>
+        <div class="chat-messages" id="chatMessages"></div>
+        <footer class="chat-footer">
+            <input type="text" id="userInput" placeholder="Type your message..." autofocus>
+            <button id="sendBtn" class="icon-button send-btn" aria-label="Send message"></button>
+        </footer>
     </div>
-    <button id="openBtn" class="openBtn">Open Chat</button>
-  </div>
-  
-  <script src="script.js"></script>
+    <button id="openBtn" class="open-btn"></button>
+
+    <script src="script.js"></script>
 </body>
 </html>

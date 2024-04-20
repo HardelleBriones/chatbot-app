@@ -1,116 +1,136 @@
-.chat-container {
-  position: relative;
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: #f5f5f5;
 }
-  
+
 .chat-sidebar {
   position: fixed;
-  top: 80px;
-  right: -440px;
-  width: 400px;
-  height: 100%;
-  background-color: #dadada;
-  padding: 20px;
-  border-top-left-radius: 15px;
-  outline-style: solid;
-  outline-width: thin;
-  transition: right 0.3s ease-in-out;
+    top: 10%; /* Adjusted to start from the top */
+    bottom: 0; /* Adjusted to extend to the bottom */
+    right: -420px; /* Fully hide sidebar */
+    width: 400px;
+    background-color: #fff;
+    color: #333;
+    border-left: 3px solid #007BFF;
+    padding: 20px;
+    transition: right 0.5s ease-in-out;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-header {
   display: flex;
-  width: 350px;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  background-color: white;
+  font-size: 1.2rem;
+  padding-bottom: 10px;
 }
 
 .chat-messages {
-  position: absolute;
-  width: 350px;
-  max-height: 580px;
   overflow-y: auto;
-  overflow-x: auto;
-  margin-bottom: 20px;
-  background-color: #dadada;
+  padding: 10px;
+  background: #e9ecef;
+  height: calc(100% - 120px); /* Adjusts the height dynamically */
 }
 
-.chat-input {
-  position: fixed;
-  bottom: 30px;
-  width: 350px;
+/* Clearfix for floating elements */
+.chat-messages::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
-#userInput {
-  width: calc(100% - 20px);
-  height: 30px;
-  margin-right: 10px;
+.message {
+  max-width: 80%; /* Limit the maximum width */
+  padding: 10px;
   border-radius: 10px;
-  border: none;
-  padding: 10px;
+  margin-bottom: 10px;
+  display: inline-block;
+  overflow-wrap: break-word; /* Ensures text wraps to next line */
 }
 
-#userInput:focus {
+.user-message {
+  background-color: #007BFF;
+  color: #fff;
+  float: right;
+  clear: both;
+  margin-right: 5px; /* Right margin for spacing */
+}
+
+.bot-message {
+  background-color: #606060;
+  color: #ffffff;
+  float: left;
+  clear: both;
+  margin-left: 5px; /* Left margin for spacing */
+}
+
+
+.chat-footer {
+  display: flex;
+  margin-top: 10px;
+}
+
+input, button {
   outline: none;
-}
-
-#sendBtn {
-  position: absolute;
-  top: 15px;
-  right: 10px;
-  height: 25px;
-  width: 35px;
-  border-radius: 5px;
-  border: none;
-  background: url('static/send-icon.svg') no-repeat 5px center;
-}
-
-.chat-settings {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  height: 780px;
-  color: white;
-  background-color: white;
-}
-
-#settingsBtn {
-  position: absolute;
-  bottom: 120px;
-  right: 10px;
-  height: 25px;
-  width: 35px;
-  border-radius: 5px;
-  border: none;
-  background: url('static/settings-icon.svg') no-repeat 5px center;
-}
-
-#exitBtn {
-  position: absolute;
-  top: 40px;
-  right: 5px;
-  height: 25px;
-  width: 35px;
-  border-radius: 5px;
-  border: none;
-  background: url('static/exit-icon.svg') no-repeat 5px center;
-}
-
-.openBtn {
-  position: fixed;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 0;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 0;
-  border: none;
   padding: 10px;
-  top: 10%;
-  right: 0;
-  cursor: pointer;
-  transform: translateY(-50%);
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
-.openBtn:hover {
-  background-color: black;
-  color: white;
+input {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.icon-button {
+  width: 40px;
+  height: 40px;
+  background-color: #ffffff;
+  color: #fff;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 20px 20px;
+}
+
+.exit-btn {
+  background-image: url('static/exit-icon.svg');
+}
+
+.send-btn {
+  background-image: url('static/send-icon.svg');
+}
+
+.send-btn:hover {
+  background-image: url('static/send-icon.svg');
+  background-color: #007BFF;
+}
+
+.open-btn {
+  background-image: url('static/logo-icon.svg'); 
+  background-repeat: no-repeat;
+  background-size: cover; 
+  background-position: center; 
+  position: fixed;
+  top: 10%;
+  right: 10px; 
+  width: 60px; 
+  height: 60px; 
+  border: none;
+  border-radius: 50px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, right 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white; /* Ensures contrast if the image doesn't load */
+}
+
+
+.open-btn:hover {
+  background-image: url('static/logo-icon.svg');
+  background-color: #41fff9;
 }

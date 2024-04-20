@@ -53,7 +53,7 @@ class MoodleServices:
     #     return {'user_id': user_id, 'user_name': user_name, 'courses': user_courses}
     
     def get_courses_for_user(self, user_id):
-        """Retrieve courses for a specific user."""
+        """Retrieve courses for a specific user with detailed content and module information."""
         user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
         courses_data = []
         for course in user_courses:
