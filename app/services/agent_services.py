@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 load_dotenv()
 llm = OpenAI(temperature=0, model="gpt-3.5-turbo")
 db = chromadb.PersistentClient(path="../chroma_db")
-MONGO_URI = os.getenv("MONGODB_CONNECTION_STRING")
+MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
 
 def create_vector_engine(collection):
     #add exception if collection is not found
