@@ -44,7 +44,7 @@ class ChatHistory():
                 messages = messages[::-1][:10]
                 messages.reverse()
                 chat_history = []
-                for message in messages:\
+                for message in messages:
                     chat_history.append(ChatMessage(content=message['user_query'], role="user"))
                     chat_history.append(ChatMessage(content=message['ai_response'], role="assistant"))
                 return chat_history
