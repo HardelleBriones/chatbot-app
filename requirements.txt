@@ -9,6 +9,7 @@ llama-index-vector-stores-chroma
 chromadb
 llama-index-storage-docstore-mongodb
 llama-index-storage-index-store-mongodb
+llama-index-vector-stores-mongodb
 pymongo
 motor
 python-dotenv

@@ -11,7 +11,10 @@ from llama_index.core import Document
 from llama_index.core.schema import BaseNode
 from typing import List
 import os
-
+import re
+from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
+from dotenv import load_dotenv
+load_dotenv()
 chroma_client = chromadb.PersistentClient(path="../chroma_db")
 def add_data(filename: str,data: List[BaseNode]):
     try:
@@ -31,7 +34,7 @@ def add_data(filename: str,data: List[BaseNode]):
     except ValueError as e:
         print(f"An error occurred: {e}")
 
-import re
+
 
 def format_collection_name(name):
     # Remove leading and trailing whitespaces

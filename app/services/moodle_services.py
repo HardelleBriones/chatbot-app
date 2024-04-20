@@ -1,14 +1,17 @@
 import requests
 import os
 import json
-
+from dotenv import load_dotenv
+load_dotenv()
 # Use environment variable for the Moodle API token
-MOODLE_API_TOKEN = os.getenv('MOODLE_API_TOKEN')
+#MOODLE_API_TOKEN = os.getenv('MOODLE_API_TOKEN')
 
 class MoodleServices:
     def __init__(self, base_url: str = "http://localhost"):
-        self.api_token = MOODLE_API_TOKEN
+        self.api_token = os.getenv('MOODLE_API_TOKEN')
         self.base_url = f"{base_url}/webservice/rest/server.php"
+        
+    print("API Token:", os.getenv('MOODLE_API_TOKEN'))
 
     def make_api_call(self, wsfunction, params=None):
         """General method to make an API call to the Moodle web service."""
@@ -45,13 +48,6 @@ class MoodleServices:
     #     user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
     #     user_info = self.make_api_call('core_user_get_users_by_field', {'field': 'id', 'values[0]': user_id})
     #     user_name = user_info[0]['fullname']
-    #     return {'user_id': user_id, 'user_name': user_name, 'courses': user_courses}
-    
-    # def get_courses_for_user(self, user_id):
-    #     """Retrieve courses for a specific user."""
-    #     user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
-    #     user_info = self.make_api_call('core_user_get_users_by_field', {'field': 'id', 'values[0]': user_id})
-    #     user_name = user_info[0]['fullname']
     #     for course in user_courses:
     #         course['contents'] = self.get_course_contents(course['id'])
     #     return {'user_id': user_id, 'user_name': user_name, 'courses': user_courses}
@@ -60,35 +56,17 @@ class MoodleServices:
         """Retrieve courses for a specific user with detailed content and module information."""
         user_courses = self.make_api_call('core_enrol_get_users_courses', {'userid': user_id})
         courses_data = []
-
         for course in user_courses:
-            course_data = {
-                'displayname': course['displayname'],
-                'contents': []
-            }
+            course_data = {'displayname': course['displayname'], 'urls': []}
             course_contents = self.get_course_contents(course['id'])
-            
             for content in course_contents:
-                content_data = {
-                    'name': content['name'],
-                    'modules': []
-                }
-
                 for module in content.get('modules', []):
                     if 'url' in module:
-                        module_data = {
-                            'url': module['url'],
-                            'name': module['name']
-                        }
-                        content_data['modules'].append(module_data)
-
-                course_data['contents'].append(content_data)
-            
+                        course_data['urls'].append(module['url'])
             courses_data.append(course_data)
-        
         return courses_data
-
         
+    
 
 # Example usage:
 moodle_service = MoodleServices()
