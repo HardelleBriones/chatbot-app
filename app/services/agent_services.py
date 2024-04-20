@@ -21,7 +21,8 @@ import os
 from llama_index.vector_stores.chroma import ChromaVectorStore
 import pymongo
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
-from llama_index.core import Settings
+from dotenv import load_dotenv
+load_dotenv()
 llm = OpenAI(temperature=0, model="gpt-3.5-turbo")
 db = chromadb.PersistentClient(path="../chroma_db")
 MONGO_URI = 'mongodb+srv://hardellebriones:hardrion@cluster0.iprxz4o.mongodb.net/'

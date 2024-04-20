@@ -16,8 +16,10 @@ import re
 import pymongo
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core import Settings
-Settings.embed_model = OpenAIEmbedding(model="text-embedding-ada-002")
-MONGO_URI = 'mongodb+srv://hardellebriones:hardrion@cluster0.iprxz4o.mongodb.net/'
+from dotenv import load_dotenv
+load_dotenv()
+embed_model = OpenAIEmbedding(model="text-embedding-ada-002")
+MONGO_URI = os.getenv('MONGODB_CONNECTION_STRING')
 def add_data_atlas(collection: str,db_name: str,data: List[BaseNode]):
     try:
         mongodb_client = pymongo.MongoClient(MONGO_URI)
@@ -25,7 +27,7 @@ def add_data_atlas(collection: str,db_name: str,data: List[BaseNode]):
         storage_context_vector = StorageContext.from_defaults(vector_store=store)
         #create a vector index
         VectorStoreIndex(
-            data, storage_context=storage_context_vector
+            data, storage_context=storage_context_vector, embed_model=embed_model
         )
         storage_context = StorageContext.from_defaults(
         docstore=MongoDocumentStore.from_uri(uri=MONGO_URI, namespace=collection, db_name=f"docstore_{db_name}"),

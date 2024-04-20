@@ -1,9 +1,11 @@
 from pymongo import MongoClient
 from datetime import datetime
 from ..routers.schemas import UserCreate, UserUpdate
-
+from dotenv import load_dotenv
+load_dotenv()
+import os
 # Replace with your MongoDB connection string
-connection_string = "mongodb://localhost:27017/"
+connection_string = os.getenv('MONGODB_CONNECTION_STRING')
 
 # Connect to MongoDB
 client = MongoClient(connection_string)
