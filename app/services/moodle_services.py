@@ -83,15 +83,31 @@ class MoodleServices:
             courses_data.append(course_data)
 
         return courses_data
+    
+    def get_courses_with_ids(self):
+        """Retrieve courses along with their course IDs."""
+        courses_with_ids = {}
+        courses = self.get_all_courses()
+
+        for course in courses:
+            course_id = course['id']
+            course_name = course['fullname']
+            courses_with_ids[course_name] = course_id
+
+        return courses_with_ids
         
     
 
 # Example usage:
 moodle_service = MoodleServices()
 try:
-    enrolled_courses = moodle_service.get_courses_for_user(user_id=3)
+    # enrolled_courses = moodle_service.get_courses_for_user(user_id=3)
     #all_courses = moodle_service.get_all_courses()
-    print(json.dumps(enrolled_courses, indent=4))
+    # print(json.dumps(enrolled_courses, indent=4))
     #print(json.dumps(all_courses, indent=4))
+
+    courses_with_ids = moodle_service.get_courses_with_ids()
+    for course_name, course_id in courses_with_ids.items():
+        print(f"Course Name: {course_name}, Course ID: {course_id}")
 except SystemError as e:
     print(e)
