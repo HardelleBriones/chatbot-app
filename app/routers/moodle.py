@@ -42,3 +42,14 @@ def get_course_contents(course_id: int):
         return contents
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@router.get("/course_name")
+def get_course_name(self):
+    """Retrieve course name for a specific course."""
+    try:
+        course_name = moodle_service.get_courses_with_ids(self)
+        if not course_name:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No course name found")
+        return course_name
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
