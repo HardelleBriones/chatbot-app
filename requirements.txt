@@ -13,3 +13,4 @@ llama-index-vector-stores-mongodb
 pymongo
 motor
 python-dotenv
+llama-index-retrievers-bm25
