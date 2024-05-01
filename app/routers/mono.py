@@ -4,36 +4,86 @@ from llama_index.core import (
     SimpleDirectoryReader,
 )
 import tempfile
-
-from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core import Document
 import requests
 import os
 from tempfile import TemporaryDirectory
 from services.data_ingestion_services import add_data, format_collection_name
-from services.mono_query import create_vector_engine_atlas_mono, create_agent_mono, add_data_mono
-from routers.schemas import CollectionChange 
-from services.atlas_services import add_data_atlas, get_collections,get_vector_databases, check_database_exists
+from services.mono_query import (
+    get_vector_index, 
+    create_agent_mono, add_data_mono, 
+    add_file_to_course, delete_file, 
+    get_all_files,
+    get_all_course,
+    delete_course_file,
+    get_docstore,
+    query_fusion_retriever,
+    create_bm25_retriever,
+    )
 router = APIRouter(
     prefix="/mono",
     tags=["mono"]
 )    
 
-@router.get("/")
+@router.get("/query/")
 def query_mono(query: str, course_name:str, user: str ="user"):
     try:
-        engine = create_vector_engine_atlas_mono(course_name)
+        index = get_vector_index(course_name)
+        engine = index.as_query_engine()
         agent = create_agent_mono(engine,course_name)
         response = agent.query(query)
         return str(response)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+@router.get("/query_bm25/")
+def query_mono_bm25(query: str, course_name:str, user: str ="user"):
+    try:
+        if not course_name in get_all_course():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{course_name} not found")
+        #create vector retriever
+        index = get_vector_index(course_name)
+        vector_retriever = index.as_retriever(similarity_top_k=2)
+        #create bm25 retriever
+        docstore = get_docstore(course_name)
+        bm25_retriever = create_bm25_retriever(docstore)
+        #use fusion retriever
+        engine =  query_fusion_retriever(vector_retriever,bm25_retriever)
+        agent = create_agent_mono(engine,course_name)
 
+        response = agent.query(query)
+        return str(response)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@router.post("/add_text_knowledge_base/", description="Add text to knowledge base")
+async def add_text_knowledge_base(text_string:str, course_name:str, topic: str):
+    try:  
+        file_name = topic
+        if add_file_to_course(course_name,file_name):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
+        
+    
+        document = Document(
+        text=text_string,
+        metadata={
+            "file_name": file_name,
+        },
+        excluded_llm_metadata_keys=[],
+        metadata_seperator="::",
+        metadata_template="{key}=>{value}",
+        text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
+        )
+        
+        add_data_mono(course_name, [document], topic)
+        return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+   
     
 
-
 @router.post("/downloadlink/", description="Add file using link")
-async def upload_file_link(download_link: str, course_name:str,topic:str):
+async def upload_file_link(download_link: str, course_name:str):
   """
   Downloads a file from the specified URL and stores it in a temporary directory.
 
@@ -47,9 +97,9 @@ async def upload_file_link(download_link: str, course_name:str,topic:str):
   with tempfile.TemporaryDirectory() as tmpdir:
     # Extract filename from URL, considering the possibility of query parameters
     filename = download_link.split("/")[-1].split("?")[0]  # Get last part before '?'
-    prefixed_filename = f"Topic {topic}-{filename}"  # Add the prefix
+    #prefixed_filename = f"Topic {topic}-{filename}"  # Add the prefix
 
-    filepath = os.path.join(tmpdir, prefixed_filename)
+    filepath = os.path.join(tmpdir, filename)
    
 
     # Send a GET request to download the file
@@ -66,15 +116,66 @@ async def upload_file_link(download_link: str, course_name:str,topic:str):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
         data = SimpleDirectoryReader(input_files=[filepath]).load_data()
-        nodes = SentenceSplitter(chunk_size=1024, chunk_overlap=20).get_nodes_from_documents(data)
-        add_data_mono(course_name, nodes)
-        return filepath
+        #nodes = SentenceSplitter(chunk_size=1024, chunk_overlap=20).get_nodes_from_documents(data)
+        file_name = data[0].metadata['file_name']
+
+        if add_file_to_course(course_name,file_name):
+           raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
+        
+        add_data_mono(course_name, data)
+        
+        return Response(status_code=status.HTTP_200_OK)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
 
+@router.delete("/collection/{file_name_to_delete}")
+def delete_course_files(course_name: str, file_name_to_delete: str):  
+    try:
+        if not course_name in get_all_course():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{course_name} not found")
 
+        if file_name_to_delete in get_all_files(course_name):
+            delete_file(course_name,file_name_to_delete)
+            delete_course_file(course_name,file_name_to_delete)
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{file_name_to_delete} not found")
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except ValueError as e:
+        # Raise an HTTPException with status code 404 (Not Found) if the course is not found
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 
+   
 
+@router.get("/get_files/")
+def get_course_files(course_name:str):
+    try:
+        result = get_all_files(course_name)
+        if result:
+            return result
+        else:
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="No files or course found")
+    except ValueError as e:
+        # Raise an HTTPException with status code 404 (Not Found) if the course is not found
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 
 
+@router.get("/get_course/")
+def get_course():
+    try:
+        result = get_all_course()
+        if result:
+            return result
+        else:
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
+    except ValueError as e:
+        # Raise an HTTPException with status code 404 (Not Found) if the course is not found
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 
 
 
 
