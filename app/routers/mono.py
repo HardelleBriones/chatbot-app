@@ -7,6 +7,7 @@ import tempfile
 from llama_index.core import Document
 import requests
 import os
+from routers.schemas import Text_knowledgeBase
 from tempfile import TemporaryDirectory
 from services.data_ingestion_services import add_data, format_collection_name
 from services.mono_query import (
@@ -57,15 +58,15 @@ def query_mono_bm25(query: str, course_name:str, user: str ="user"):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.post("/add_text_knowledge_base/", description="Add text to knowledge base")
-async def add_text_knowledge_base(text_string:str, course_name:str, topic: str):
+async def add_text_knowledge_base(course_name:str, text:Text_knowledgeBase):
     try:  
-        file_name = topic
+        file_name = text.topic
         if add_file_to_course(course_name,file_name):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
         
     
         document = Document(
-        text=text_string,
+        text=text.text,
         metadata={
             "file_name": file_name,
         },
@@ -75,7 +76,7 @@ async def add_text_knowledge_base(text_string:str, course_name:str, topic: str):
         text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
         )
         
-        add_data_mono(course_name, [document], topic)
+        add_data_mono(course_name, [document], text.topic)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

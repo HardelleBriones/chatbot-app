@@ -53,3 +53,8 @@ class UserUpdate(BaseModel):
 class Course(BaseModel):
     displayname: str
     urls: List[str]
+
+
+class Text_knowledgeBase(BaseModel):
+    topic: str
+    text: str
