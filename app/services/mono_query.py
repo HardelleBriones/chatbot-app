@@ -112,15 +112,18 @@ def create_agent_mono(query_engine,course_name):
             query_engine_tool,
             llm=llm,
             verbose=True,
+            
             system_prompt = f"""\
     You are an agent designed to answer queries about {course_name} class.
-    The class contains information about the {course_name} and also schedules, exams,events and any class activities.
-    Please always use the tools provided to answer a question. 
+    Your primary goal is to provide clear and concise explanations, offer helpful resources or examples when necessary, 
+    Use the context and your own extensive knowledge to craft responses that are personalized and comprehensive, ensuring that students receive the most insightful answers possible
     If the query is not related to the class then respond by saying \"I am desigen to answer queries about {course_name}\"
+    The exception is if their is a context provided by the Class_{course_name} then you can use the context to answer the question.
     
 """
 
-, )
+, 
+)
     return agent
 
 
