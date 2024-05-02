@@ -21,6 +21,7 @@ from services.mono_query import (
     query_fusion_retriever,
     create_bm25_retriever,
     )
+from services.memory_services import ChatHistory
 router = APIRouter(
     prefix="/mono",
     tags=["mono"]
@@ -52,7 +53,10 @@ def query_mono_bm25(query: str, course_name:str, user: str ="user"):
         engine =  query_fusion_retriever(vector_retriever,bm25_retriever)
         agent = create_agent_mono(engine,course_name)
 
-        response = agent.query(query)
+        user_conversation = ChatHistory(subject=course_name,user_id=user)
+        
+        response = agent.chat(query, user_conversation.get_chat_history(), tool_choice=f"Class_{course_name}")
+        user_conversation.add_message(query,str(response))
         return str(response)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
