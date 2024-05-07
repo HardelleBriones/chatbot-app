@@ -59,15 +59,18 @@ def query_mono_bm25(query: str, course_name:str, user: str ="user"):
         user_conversation.add_message(query,str(response))
         return str(response)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred. If this issue persists please contact the admin")
 
 @router.post("/add_text_knowledge_base/", description="Add text to knowledge base")
 async def add_text_knowledge_base(course_name:str, text:Text_knowledgeBase):
     try:  
         file_name = text.topic
-        if add_file_to_course(course_name,file_name):
+      
+         #check if file exist
+        file = get_all_files(course_name)
+        if not file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
-        
     
         document = Document(
         text=text.text,
@@ -75,12 +78,14 @@ async def add_text_knowledge_base(course_name:str, text:Text_knowledgeBase):
             "file_name": file_name,
         },
         excluded_llm_metadata_keys=[],
+        excluded_embed_metadata_keys=[],
         metadata_seperator="::",
         metadata_template="{key}=>{value}",
         text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
         )
         
         add_data_mono(course_name, [document], text.topic)
+        add_file_to_course(course_name,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -124,10 +129,13 @@ async def upload_file_link(download_link: str, course_name:str):
         #nodes = SentenceSplitter(chunk_size=1024, chunk_overlap=20).get_nodes_from_documents(data)
         file_name = data[0].metadata['file_name']
 
-        if add_file_to_course(course_name,file_name):
-           raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
+        #check if file exist
+        file = get_all_files(course_name)
+        if not file:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
         
         add_data_mono(course_name, data)
+        add_file_to_course(course_name,file_name)
         
         return Response(status_code=status.HTTP_200_OK)
     except Exception as e:

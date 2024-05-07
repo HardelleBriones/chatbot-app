@@ -16,3 +16,9 @@ class Conversation(BaseModel):
     subject: str
     messages: List[Message] = []
 
+
+class Text_knowledgeBase(BaseModel):
+    topic: str
+    text: str
+
+
