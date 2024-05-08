@@ -3,7 +3,7 @@ from llama_index.core import (
     VectorStoreIndex,
     StorageContext,
 )
-
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.retrievers.bm25 import BM25Retriever
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.query_engine import RetrieverQueryEngine
@@ -18,6 +18,8 @@ from llama_index.core.tools import QueryEngineTool,ToolMetadata
 from llama_index.agent.openai import OpenAIAgent
 from llama_index.llms.openai import OpenAI
 from llama_index.core.node_parser import SemanticSplitterNodeParser
+from llama_index.core.query_engine import SubQuestionQueryEngine
+import re
 from typing import List
 from dotenv import load_dotenv
 load_dotenv()
@@ -33,24 +35,26 @@ def add_data_mono(course_name: str,data: List[Document],topic:str = ""):
         
         mongodb_client = pymongo.MongoClient(MONGO_URI)
         
-        for doc in data:
-            doc.metadata["Topic"] = topic
-            doc.excluded_embed_metadata_keys  = ["file_path","file_size","creation_date","last_modified_date","last_accessed_date"]
-            doc.excluded_llm_metadata_keys =    ["file_path","file_size","creation_date","last_modified_date","last_accessed_date"]
         #Chunking
-        splitter = SemanticSplitterNodeParser(
-            buffer_size=1, breakpoint_percentile_threshold=95, embed_model=embed_model
-            )
+        # splitter = SemanticSplitterNodeParser(
+        #     buffer_size=1, breakpoint_percentile_threshold=95, embed_model=embed_model
+        #     )
+        
+        # nodes = splitter.get_nodes_from_documents(data)
+        
+        splitter = SentenceSplitter(
+            chunk_size=512,
+            chunk_overlap=10,
+        )
         nodes = splitter.get_nodes_from_documents(data)
-
         #create a vector index
-        store = MongoDBAtlasVectorSearch(mongodb_client,db_name="Course", collection_name=course_name)
+        store = MongoDBAtlasVectorSearch(mongodb_client,db_name="vector", collection_name=course_name)
         storage_context_vector = StorageContext.from_defaults(vector_store=store)
         VectorStoreIndex(nodes, storage_context=storage_context_vector, embed_model=embed_model)
 
         #add to docstore
         storage_context_docstore = StorageContext.from_defaults(
-            docstore=MongoDocumentStore.from_uri(uri=MONGO_URI, namespace=course_name, db_name="Course_docstore"),
+            docstore=MongoDocumentStore.from_uri(uri=MONGO_URI, namespace=course_name, db_name="docstore"),
             )
         storage_context_docstore.docstore.add_documents(nodes)
     
@@ -64,7 +68,7 @@ def get_vector_index(course_name):
         client = pymongo.MongoClient(MONGO_URI)
         vector_store = MongoDBAtlasVectorSearch(
             client,
-            db_name="Course",
+            db_name="vector_store-sum",
             collection_name=course_name,
             index_name=course_name
         )
@@ -79,7 +83,7 @@ def get_docstore(course_name):
     try:
 
         storage = StorageContext.from_defaults(
-                docstore=MongoDocumentStore.from_uri(uri=MONGO_URI, namespace=course_name, db_name="Course_docstore"),
+                docstore=MongoDocumentStore.from_uri(uri=MONGO_URI, namespace=course_name, db_name="docstore"),
                 )
         return storage.docstore
     except Exception as e:
@@ -110,18 +114,32 @@ def query_fusion_retriever(vector_retriever, bm25_retriever):
     except Exception as e:
         raise Exception("Error in creating fusion retriever: " + str(e))
 
+def create_query_engine_tool(vector_query_engine,name: str):
+    # setup base query engine as tool
+    query_engine_tools = [
+        QueryEngineTool(
+            query_engine=vector_query_engine,
+            metadata=ToolMetadata(
+                name=name,
+                description= f"Provides information about  {name} "
+                    "Use a detailed plain text question as input to the tool."
+            ),
+        ),
+    ]
+    return query_engine_tools
+
 
 def create_agent_mono(query_engine,course_name):
     try:
         query_engine_tool = QueryEngineTool(
             query_engine=query_engine,
             metadata=ToolMetadata(
-                name=f"Class_{course_name}",
+                name=course_name,
                 description=(
-                    f"Provides information about the different topics of class {course_name} "
+                    f"Provides information about the {course_name} "
                     "Use a detailed plain text question as input to the tool."
                 ),
-            ),
+            ), 
         ),
         agent = OpenAIAgent.from_tools(
                 query_engine_tool,
@@ -149,7 +167,7 @@ def create_agent_mono(query_engine,course_name):
 def delete_file(course_name: str, file_name_to_delete: str):
     try:
         client = pymongo.MongoClient(MONGO_URI)
-        db = client["Course_docstore"] 
+        db = client["docstore"] 
 
 
         collection_data = db[f"{course_name}/data"]
@@ -175,11 +193,28 @@ def delete_file(course_name: str, file_name_to_delete: str):
             deleted_count += result.deleted_count
         print("Deleted count metadata:",deleted_count)
 
-        db_vector = client["Course"] 
+        db_vector = client["vector"] 
         collection = db_vector[course_name]
         filter_criteria_ref_doc_info = {"metadata.file_name": file_name_to_delete}
         result = collection.delete_many(filter_criteria_ref_doc_info)
         print("Deleted node vector:", result.deleted_count)
+
+        if collection_data.count_documents({}) == 0:
+            # If it's empty, delete the collection
+            db.drop_collection(f"{course_name}/data")
+
+        if collection_ref_doc_info.count_documents({}) == 0:
+            # If it's empty, delete the collection
+            db.drop_collection(f"{course_name}/ref_doc_info")
+            
+        if collection_metadata.count_documents({}) == 0:
+            # If it's empty, delete the collection
+            db.drop_collection(f"{course_name}/metadata")
+        if collection.count_documents({}) == 0:
+            # If it's empty, delete the collection
+            db_vector.drop_collection(course_name)
+        
+
     except Exception as e:
         raise Exception("Error in deleting file: " + str(e))
 
@@ -191,7 +226,7 @@ def delete_file(course_name: str, file_name_to_delete: str):
 def add_file_to_course(course_name, file_name):
     try:
         client = pymongo.MongoClient(MONGO_URI)
-        db = client["Course"] 
+        db = client["vector"] 
         course_collection = db["records"]
         # Check if the course already exists
         course = course_collection.find_one({'course_name': course_name})
@@ -211,8 +246,9 @@ def add_file_to_course(course_name, file_name):
 
 def get_all_files(course_name:str):
     try:
+
         client = pymongo.MongoClient(MONGO_URI)
-        db = client["Course"] 
+        db = client["vector"] 
         course_collection = db["records"]
         # Query the collection based on the course name
         result = course_collection.find_one({"course_name": course_name})
@@ -222,22 +258,19 @@ def get_all_files(course_name:str):
             file_names = result.get("file_names", [])
             if file_names:
                 return file_names
-            else:
-                return None
-        else:
-            raise ValueError("Course not found")
+
     except Exception as e:
-        raise Exception("Error in getting all files in records: " + str(e))
+        raise Exception("Error in getting all files in records: ", str(e))
 
 
 def get_all_course():
     try:
         client = pymongo.MongoClient(MONGO_URI)
         # Check if the "records" collection exists
-        if "Course" not in client.list_database_names():
+        if "vector" not in client.list_database_names():
             raise ValueError("Records collection does not exist")
         
-        db = client["Course"] 
+        db = client["vector"] 
         # Check if the "records" collection exists
         if "records" not in db.list_collection_names():
             raise ValueError("Records collection does not exist")
@@ -254,10 +287,10 @@ def delete_course_file(course_name: str, file_name:str):
     try: 
         client = pymongo.MongoClient(MONGO_URI)
         # Check if the "records" collection exists
-        if "Course" not in client.list_database_names():
+        if "vector" not in client.list_database_names():
             raise ValueError("Records collection does not exist")
         
-        db = client["Course"] 
+        db = client["vector"] 
 
         # Check if the "records" collection exists
         if "records" not in db.list_collection_names():
@@ -271,8 +304,31 @@ def delete_course_file(course_name: str, file_name:str):
                         {'_id': course['_id']},
                         {'$pull': {'file_names': file_name}}
                     )
+            # Retrieve the updated course document
+            updated_course = course_collection.find_one({'_id': course['_id']})
+             # If the file list becomes empty, delete the entire document
+            if 'file_names' in updated_course and not updated_course['file_names']:
+                course_collection.delete_one({'_id': course['_id']})
+                print(f"Document for course '{course_name}' deleted because file list became empty.")
         else:
             raise ValueError("Course not found")
     except Exception as e:
         raise Exception("Error in deleting course file: " +str(e))
         
+
+
+def valid_index_name(name:str):
+  """Checks if a string contains only valid characters (letters, numbers, hyphens, or underscores).
+
+  Args:
+      s: The string to be checked.
+
+  Returns:
+      True if the string contains only valid characters, False otherwise.
+  """
+
+  # Improved pattern for clarity and potential whitespace handling
+  pattern = r"^[a-zA-Z0-9_-]+$"
+
+  # Match the pattern at the beginning and end of the string for completeness
+  return bool(re.match(pattern, name))

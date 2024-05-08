@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile
 #from . import models
 # from .database import engine
-from routers import query, knowledge_base, user, evaluation, atlas, moodle, mono
+from routers import query, knowledge_base, user, evaluation, atlas, moodle, mono, ingest_data
 #models.Base.metadata.create_all(bind=engine)
 
 from dotenv import load_dotenv
@@ -11,12 +11,13 @@ app = FastAPI()
 
 
 app.include_router(mono.router)
+app.include_router(ingest_data.router)
 app.include_router(query.router)
-app.include_router(moodle.router)
-app.include_router(atlas.router)
+# app.include_router(moodle.router)
+# app.include_router(atlas.router)
 #app.include_router(knowledge_base.router)
-app.include_router(user.router)
-app.include_router(evaluation.router)
+# app.include_router(user.router)
+# app.include_router(evaluation.router)
 
 
 
