@@ -43,8 +43,8 @@ def add_data_mono(course_name: str,data: List[Document],topic:str = ""):
         # nodes = splitter.get_nodes_from_documents(data)
         
         splitter = SentenceSplitter(
-            chunk_size=512,
-            chunk_overlap=10,
+            chunk_size=1024,
+            chunk_overlap=20,
         )
         nodes = splitter.get_nodes_from_documents(data)
         #create a vector index
@@ -68,7 +68,7 @@ def get_vector_index(course_name):
         client = pymongo.MongoClient(MONGO_URI)
         vector_store = MongoDBAtlasVectorSearch(
             client,
-            db_name="vector_store-sum",
+            db_name="vector",
             collection_name=course_name,
             index_name=course_name
         )
@@ -217,11 +217,6 @@ def delete_file(course_name: str, file_name_to_delete: str):
 
     except Exception as e:
         raise Exception("Error in deleting file: " + str(e))
-
-
-
-
-
 
 def add_file_to_course(course_name, file_name):
     try:

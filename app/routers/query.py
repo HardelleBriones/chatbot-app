@@ -1,6 +1,5 @@
 from fastapi import Depends, status, HTTPException, Response, APIRouter
-from services.mono_query import create_query_engine_tool, get_vector_index, get_all_course
-from services.atlas_services import get_collections
+from services.mono_query import create_query_engine_tool, get_vector_index, get_all_course, get_docstore,create_bm25_retriever, query_fusion_retriever
 from services.memory_services import ChatHistory
 from llama_index.agent.openai import OpenAIAgent
 from llama_index.llms.openai import OpenAI
@@ -11,20 +10,60 @@ router = APIRouter(
     prefix="/query",
     tags=["query"]
 )    
-llm = OpenAI(temperature=0.2, model="gpt-3.5-turbo-0125")
+llm = OpenAI(temperature=0, model="gpt-3.5-turbo-0125")
+
+SYSTEM_MESSAGE = """
+You are an AI chatbot designed to answer queries about {course_name}
+Always use the {course_name} tool to answer a user query
+Do not rely on prior knowledge.\
+If there is no relevant information provided by the tool, just say "Hmm, I'm \
+not sure." Don't try to make up an answer.
+
+""".strip()
+
 @router.get("/")
 def query_openai_agent(query: str, course_name: str):
     try: 
+       
         if course_name not in get_all_course():
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{course_name} not found")
         vector = get_vector_index(course_name)
         response_synthesizer = get_response_synthesizer(
         response_mode=ResponseMode.TREE_SUMMARIZE
         )
-        query_engine_tools = create_query_engine_tool(vector.as_query_engine(similarity_top_k=3),course_name)
-        agent = OpenAIAgent.from_tools(query_engine_tools, verbose=True,llm=llm, response_synthesizer=response_synthesizer)
-        response = agent.chat(query)
-        
+        query_engine_tools = create_query_engine_tool(vector.as_query_engine(similarity_top_k=4, response_synthesizer=response_synthesizer),course_name)
+        agent = OpenAIAgent.from_tools(query_engine_tools, verbose=True,llm=llm,
+                                       system_prompt=SYSTEM_MESSAGE.format(course_name=course_name))
+        response = agent.chat(query, tool_choice=course_name)
+        # engine = vector.as_query_engine(similarity_top_k=2, response_synthesizer=response_synthesizer)
+        # response = engine.query(query)
+        return str(response)
+    except Exception as e:
+          raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+
+@router.get("/fusion_retriever/")
+def fusion_retriever_bm25(query: str, course_name: str):
+    try: 
+       
+        if course_name not in get_all_course():
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{course_name} not found")
+            #create vector retriever
+        index = get_vector_index(course_name)
+        vector_retriever = index.as_retriever(similarity_top_k=2)
+        #create bm25 retriever
+        docstore = get_docstore(course_name)
+        bm25_retriever = create_bm25_retriever(docstore)
+        #use fusion retriever
+        engine =  query_fusion_retriever(vector_retriever,bm25_retriever)
+        engine_tool = create_query_engine_tool(engine,course_name)
+        response_synthesizer = get_response_synthesizer(
+        response_mode=ResponseMode.REFINE
+        )
+        agent = OpenAIAgent.from_tools(engine_tool, verbose=True,llm=llm,
+                                       system_prompt=SYSTEM_MESSAGE.format(course_name=course_name),
+                                       response_synthesizer=response_synthesizer)
+        response = agent.chat(query, tool_choice=course_name)
         return str(response)
     except Exception as e:
           raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
