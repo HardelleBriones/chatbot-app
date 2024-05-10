@@ -251,8 +251,10 @@ def get_all_files(course_name:str):
         if result:
             # Extract and return the list of file names
             file_names = result.get("file_names", [])
+            
             if file_names:
                 return file_names
+        return []
 
     except Exception as e:
         raise Exception("Error in getting all files in records: ", str(e))

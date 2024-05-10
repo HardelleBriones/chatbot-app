@@ -43,7 +43,7 @@ async def upload_file(file: UploadFile, course_name: str):
 
             #check if file exist
             file = get_all_files(course_name)
-            if file:
+            if file_name in file:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
             
             add_data_mono(course_name, data)
