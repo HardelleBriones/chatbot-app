@@ -1,21 +1,13 @@
-from fastapi import Depends, status, HTTPException, Response, APIRouter, UploadFile, File
-from llama_index.core import (
-    VectorStoreIndex,
-    SimpleDirectoryReader,
-)
-from llama_index.core.node_parser import SentenceSplitter
+from fastapi import status, HTTPException, Response, APIRouter, UploadFile
+from llama_index.core import SimpleDirectoryReader
 import requests
 import os
 from tempfile import TemporaryDirectory
 import tempfile
 from llama_index.core import Document
-from services.mono_query import (
-    add_data_mono, 
-    add_file_to_course, 
-    get_all_files,
-    valid_index_name,
-    )
-from routers.schemas import Text_knowledgeBase
+from services.knowledge_base_services  import add_file_to_course, get_all_files,valid_index_name
+from services.ingest_data_services import add_data
+from data_definitions.schemas import Text_knowledgeBase
 import tempfile
 from llama_index.core import Document
 router = APIRouter(
@@ -46,7 +38,7 @@ async def upload_file(file: UploadFile, course_name: str):
             if file_name in file:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
             
-            add_data_mono(course_name, data)
+            add_data(course_name, data)
             add_file_to_course(course_name,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:
@@ -94,10 +86,10 @@ async def upload_file_link(download_link: str, course_name:str):
 
         #check if file exist
         file = get_all_files(course_name)
-        if file:
+        if file_name in file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
         
-        add_data_mono(course_name, data)
+        add_data(course_name, data)
         add_file_to_course(course_name,file_name)
         
         return Response(status_code=status.HTTP_200_OK)
@@ -108,30 +100,35 @@ async def upload_file_link(download_link: str, course_name:str):
 
 
 @router.post("/add_text_knowledge_base/", description="Add text to knowledge base")
-async def add_text_knowledge_base(course_name:str, text:Text_knowledgeBase):
+async def add_text_knowledge_base(course_name:str, metadata:Text_knowledgeBase):
     try:  
         if not valid_index_name(course_name):
             raise ValueError("Invalid Index Name")
-        file_name = text.topic
+        file_name = metadata.topic
       
          #check if file exist
         file = get_all_files(course_name)
-        if file:
+        if file_name in file:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{file_name} already exist")
-    
+
+
         document = Document(
-        text=text.text,
+        
+        text=metadata.text,
         metadata={
             "file_name": file_name,
+            "topic": metadata.topic,
+            "description":metadata.description,
+            "common_questions":metadata.common_questions,
         },
-        excluded_llm_metadata_keys=[],
-        excluded_embed_metadata_keys=[],
+        excluded_llm_metadata_keys=['file_name'],
+        excluded_embed_metadata_keys=['file_name'],
         metadata_seperator="::",
         metadata_template="{key}=>{value}",
         text_template="Metadata: {metadata_str}\n-----\nContent: {content}",
         )
         
-        add_data_mono(course_name, [document], text.topic)
+        add_data(course_name, [document])
         add_file_to_course(course_name,file_name)
         return Response(status_code=status.HTTP_200_OK, content="Successfully added to knowledge base")
     except Exception as e:

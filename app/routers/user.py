@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Response
-from routers.schemas import User, UserCreate, UserUpdate
+from data_definitions.schemas import User, UserCreate, UserUpdate
 from pymongo import MongoClient
 import datetime
 import os

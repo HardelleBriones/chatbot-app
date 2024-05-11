@@ -1,6 +1,6 @@
-from fastapi import Depends, status, HTTPException, Response, APIRouter, UploadFile, File
-from services.mono_query import (
- delete_file, 
+from fastapi import status, HTTPException, Response, APIRouter
+from services.knowledge_base_services import (
+    delete_file, 
     get_all_files,
     get_all_course,
     delete_course_file,
@@ -10,10 +10,6 @@ router = APIRouter(
     prefix="/knowledge_base",
     tags=["knowledge_base"]
 )    
-
-
-    
-
 
 
 @router.get("/get_files/")

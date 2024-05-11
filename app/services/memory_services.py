@@ -3,7 +3,7 @@ from pymongo import MongoClient
 import datetime
 import uuid
 from llama_index.core.llms import ChatMessage, MessageRole
-from services.schemas import Message, Conversation
+from data_definitions.schemas import Message, Conversation
 import os
 from dotenv import load_dotenv
 load_dotenv()

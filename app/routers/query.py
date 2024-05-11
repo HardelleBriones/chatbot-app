@@ -1,10 +1,12 @@
 from fastapi import Depends, status, HTTPException, Response, APIRouter
-from services.mono_query import create_query_engine_tool, get_vector_index, get_all_course, get_docstore,create_bm25_retriever, query_fusion_retriever
+from services.mono_query import create_query_engine_tool, get_vector_index, get_docstore,create_bm25_retriever, query_fusion_retriever
 from services.memory_services import ChatHistory
 from llama_index.agent.openai import OpenAIAgent
 from llama_index.llms.openai import OpenAI
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core import get_response_synthesizer
+from data_definitions.constants import SYSTEM_MESSAGE
+from services.knowledge_base_services import get_all_course
 import chromadb
 router = APIRouter(
     prefix="/query",
@@ -12,14 +14,6 @@ router = APIRouter(
 )    
 llm = OpenAI(temperature=0, model="gpt-3.5-turbo-0125")
 
-SYSTEM_MESSAGE = """
-You are an AI chatbot designed to answer queries about {course_name}
-Always use the {course_name} tool to answer a user query
-Do not rely on prior knowledge.\
-If there is no relevant information provided by the tool, just say "Hmm, I'm \
-not sure." Don't try to make up an answer.
-
-""".strip()
 
 @router.get("/")
 def query_openai_agent(query: str, course_name: str):
@@ -43,7 +37,7 @@ def query_openai_agent(query: str, course_name: str):
     
 
 @router.get("/fusion_retriever/")
-def fusion_retriever_bm25(query: str, course_name: str):
+def fusion_retriever_bm25(query: str, course_name: str, user: str ="user"):
     try: 
        
         if course_name not in get_all_course():
@@ -60,10 +54,14 @@ def fusion_retriever_bm25(query: str, course_name: str):
         response_synthesizer = get_response_synthesizer(
         response_mode=ResponseMode.REFINE
         )
+        user_conversation = ChatHistory(subject=course_name,user_id=user)
+        chat_history1 =  user_conversation.get_chat_history()
         agent = OpenAIAgent.from_tools(engine_tool, verbose=True,llm=llm,
                                        system_prompt=SYSTEM_MESSAGE.format(course_name=course_name),
-                                       response_synthesizer=response_synthesizer)
+                                       response_synthesizer=response_synthesizer,
+                                       chat_history=chat_history1)
         response = agent.chat(query, tool_choice=course_name)
+        user_conversation.add_message(query,str(response))
         return str(response)
     except Exception as e:
           raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

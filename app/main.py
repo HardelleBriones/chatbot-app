@@ -1,7 +1,7 @@
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI
 #from . import models
 # from .database import engine
-from routers import query, knowledge_base, user, evaluation, mono, ingest_data
+from routers import query, knowledge_base, user, evaluation, ingest_data
 #models.Base.metadata.create_all(bind=engine)
 
 from dotenv import load_dotenv

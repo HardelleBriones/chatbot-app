@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from datetime import datetime
-from ..routers.schemas import UserCreate, UserUpdate
+from data_definitions.schemas import UserCreate, UserUpdate
 from dotenv import load_dotenv
 load_dotenv()
 import os
